@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from typing import List
 from app.schemas.common import ApiResponse
 from app.schemas.dashboard import DashboardStats, ClientInfo, CurrentJob, ChartData
-from app.services import JobService, MockJobService
+from app.services import JobService  # 这现在会从 __init__.py 获取 MockJobService
 
 router = APIRouter()
 
