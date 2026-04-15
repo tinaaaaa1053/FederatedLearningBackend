@@ -14,8 +14,6 @@ import sys
 from app.config import settings
 from app.api.router import api_router
 from app.database import init_db
-from app.fedlbe.job_manager import job_manager
-from app.fedlbe.client_registry import client_registry
 from app.utils import is_mock_mode
 from app.services import (
     JobService, ModelService, ClientService,
@@ -49,19 +47,32 @@ async def lifespan(app: FastAPI):
         init_db()
         logger.info("Database initialized")
 
-    # Start FedLBE integration
-    await job_manager.start()
-    await client_registry.start()
-    logger.info("FedLBE integration started")
+    # Start FedLBE integration only in non-mock mode
+    app.state.job_manager = None
+    app.state.client_registry = None
+    if not is_mock_mode():
+        from app.fedlbe.job_manager import job_manager
+        from app.fedlbe.client_registry import client_registry
+
+        await job_manager.start()
+        await client_registry.start()
+        app.state.job_manager = job_manager
+        app.state.client_registry = client_registry
+        logger.info("FedLBE integration started")
+    else:
+        logger.info("Mock mode enabled, skipping FedLBE integration startup")
 
     yield
 
     # Shutdown
     logger.info("Shutting down FederatedLearningBackend...")
 
-    await job_manager.stop()
-    await client_registry.stop()
-    logger.info("FedLBE integration stopped")
+    if app.state.job_manager is not None:
+        await app.state.job_manager.stop()
+    if app.state.client_registry is not None:
+        await app.state.client_registry.stop()
+    if app.state.job_manager is not None or app.state.client_registry is not None:
+        logger.info("FedLBE integration stopped")
 
 
 # Create FastAPI application
@@ -105,10 +116,15 @@ app.include_router(api_router, prefix="/api")
 @app.get("/health", tags=["Health"])
 async def health_check():
     """Health check endpoint"""
+    manager = getattr(app.state, "job_manager", None)
+    fedlbe_connected = False
+    if manager is not None:
+        fedlbe_connected = bool(getattr(manager, "is_running", False))
+
     return {
         "status": "healthy",
         "version": "0.1.0",
-        "fedlbe_connected": job_manager.is_running if hasattr(job_manager, 'is_running') else False
+        "fedlbe_connected": fedlbe_connected
     }
 
 

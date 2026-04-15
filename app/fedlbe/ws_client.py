@@ -4,16 +4,12 @@ FedLBE WebSocket Client Bridge
 This module provides WebSocket client for communicating with FedLBE Server.
 """
 import asyncio
-import json
 import pickle
 from typing import Optional, Callable, Dict, Any
-from datetime import datetime
 import websockets
-from bson import decode as bson_decode
-from bson import encode as bson_encode
+from bson import dumps as bson_encode
 
 from app.config import settings
-from app.services.job_service import JobService
 from loguru import logger
 
 
@@ -28,7 +24,9 @@ class FedLBEBridge:
     """
 
     def __init__(self, server_url: str = None):
-        self.server_url = server_url or settings.FEDLBE_SERVER_URL
+        self.server_url = server_url or getattr(
+            settings, "FEDLBE_SERVER_URL", settings.FEDLBE_WS_URL
+        )
         self.ws: Optional[websockets.WebSocketClientProtocol] = None
         self.is_connected = False
         self.reconnect_interval = 5
@@ -115,6 +113,7 @@ class FedLBEBridge:
         logger.info(f"Job {job_id} completed")
 
         # Update job in database
+        from app.services.job_service import JobService
         service = JobService()
         # Job is completed - update status
 
@@ -132,6 +131,7 @@ class FedLBEBridge:
         logger.info(f"Job {job_id} round {round_num}: accuracy={accuracy}, loss={loss}")
 
         # Update job progress in database
+        from app.services.job_service import JobService
         service = JobService()
         await service.update_job_progress(job_id, round_num, accuracy, loss)
 

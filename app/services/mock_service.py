@@ -280,7 +280,7 @@ class MockModelService:
                 jobId=m["job_id"],
                 accuracy=m["accuracy"],
                 loss=m["loss"],
-                createdAt=m["createdAt"],
+                createdAt=m.get("createdAt", m.get("created_at")),
                 framework=m["framework"],
                 parameters=m["parameters"],
                 size=m["size"],

@@ -9,3 +9,6 @@ websockets
 bson          # pip install pymongo 包含bson，或用独立bson包
 httpx
 pydantic-settings
+loguru
+python-jose
+python-multipart

@@ -131,6 +131,7 @@ def generate_mock_models() -> List[Dict[str, Any]]:
             "accuracy": 0.85 + (i * 0.02),
             "loss": 0.28 - (i * 0.02),
             "created_at": datetime.now() - timedelta(days=i),
+            "createdAt": datetime.now() - timedelta(days=i),
             "framework": "PyTorch",
             "parameters": "25.6M",
             "size": "98.2 MB",

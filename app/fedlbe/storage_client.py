@@ -21,7 +21,9 @@ class StorageServiceClient:
     """
 
     def __init__(self, storage_url: str = None):
-        self.storage_url = storage_url or settings.FEDLBE_STORAGE_URL
+        self.storage_url = storage_url or getattr(
+            settings, "FEDLBE_STORAGE_URL", settings.STORAGE_URL
+        )
         self.client = httpx.AsyncClient(timeout=30.0)
 
     async def close(self):

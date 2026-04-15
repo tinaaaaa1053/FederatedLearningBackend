@@ -1,7 +1,7 @@
 """
 Main API router aggregating all route modules
 """
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.api import dashboard, job, model, client, data_quality, settings as settings_api
 from app.utils import is_mock_mode
 from app.services import (
