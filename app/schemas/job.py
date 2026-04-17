@@ -74,6 +74,7 @@ class JobResponse(BaseModel):
     name: str
     description: Optional[str] = None
     status: str
+    type: Optional[str] = None
     jobType: str
     algorithm: str
     currentRound: int
@@ -101,6 +102,7 @@ class JobDetailResponse(BaseModel):
     name: str
     description: Optional[str] = None
     status: str
+    type: Optional[str] = None
     jobType: str
     algorithm: str
     currentRound: int

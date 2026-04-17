@@ -48,8 +48,10 @@ async def add_user(
     service: SettingsService = Depends()
 ):
     """添加用户"""
+    # --- 修改后 ---
     user = await service.create_user(user_data)
-    return ApiResponse(data={"userId": user.id, "username": user.username})
+    # 注意：这里改用方括号 [] 来访问字典里的值
+    return ApiResponse(data={"userId": user["id"], "username": user["username"]})
 
 
 @router.post("/user/update/{user_id}", response_model=ApiResponse[dict])

@@ -107,6 +107,7 @@ class MockJobService:
                 name=j["name"],
                 description=j["description"],
                 status=j["status"],
+                type=j["job_type"],
                 jobType=j["job_type"],
                 algorithm=j["algorithm"],
                 currentRound=j["current_round"],
@@ -145,6 +146,7 @@ class MockJobService:
             "name": job["name"],
             "description": job["description"],
             "status": job["status"],
+            "type": job["job_type"],
             "jobType": job["job_type"],
             "algorithm": job["algorithm"],
             "currentRound": job["current_round"],
@@ -615,39 +617,55 @@ class MockSettingsService:
             version="1.0.0"
         )
 
-    async def create_user(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
+    # 找到 create_user 方法
+    async def create_user(self, user_data: any) -> dict:
         """Create mock user"""
-        new_user = {
-            "id": f"user-{len(mock_settings.users) + 1}",
-            "username": user_data["username"],
-            "role": user_data["role"],
-            "status": "active",
-            "email": user_data.get("email"),
-            "fullName": user_data.get("fullName")
-        }
+        
+        # 核心修复：如果 user_data 是 Pydantic 模型，先转为字典；如果是字典则保持不变
+        if hasattr(user_data, "dict"):
+            data = user_data.dict()
+        else:
+            data = user_data
 
-        mock_settings.users.append(new_user)
+        # 使用 data["key"] 访问
+        new_user = {
+            "id": f"user-{len(mock_settings['users']) + 1}",
+            "username": data["username"],
+            "role": data["role"],
+            "status": data.get("status", "active"),
+            "lastLogin": "-",
+            # 如果需要时间，可以导入 datetime 模块
+        }
+        
+        mock_settings["users"].append(new_user)
         return new_user
 
-    async def update_user(self, user_id: str, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def update_user(self, user_id: str, user_data: Any) -> Optional[Dict[str, Any]]:
         """Update mock user"""
-        user = next((u for u in mock_settings.users if u["id"] == user_id), None)
+        # 1. 查找用户（这行你已经写对了，使用了方括号）
+        user = next((u for u in mock_settings["users"] if u["id"] == user_id), None)
         if not user:
             return None
 
-        for field, value in user_data.items():
-            if field in user:
+        # 2. 核心修复：确保 user_data 转换为字典，以便使用 .items()
+        # 如果 user_data 有 dict() 方法（Pydantic对象），就转成字典；否则保持原样
+        data = user_data.dict() if hasattr(user_data, "dict") else user_data
+
+        # 3. 更新字段
+        # 使用 .items() 遍历，并排除掉值为 None 的字段（通常更新时不想把已有的值覆盖成空）
+        for field, value in data.items():
+            if field in user and value is not None:
                 user[field] = value
 
         return user
 
     async def delete_user(self, user_id: str) -> bool:
         """Delete mock user"""
-        user = next((u for u in mock_settings.users if u["id"] == user_id), None)
+        user = next((u for u in mock_settings["users"]  if u["id"] == user_id), None)
         if not user:
             return False
 
-        mock_settings.users.remove(user)
+        mock_settings["users"].remove(user)
         return True
 
     async def reset_settings(self) -> None:

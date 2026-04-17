@@ -1,6 +1,7 @@
 """
 Mock data generation utilities for testing without database
 """
+import os
 from typing import List, Dict, Any
 from datetime import datetime, timedelta
 from app.schemas.job import JobResponse, JobClient, JobMetrics
@@ -13,8 +14,8 @@ from app.schemas.settings import ConnectionSettings, WorkspaceSettings, Security
 
 def is_mock_mode() -> bool:
     """Check if mock mode is enabled"""
-    # In a real implementation, this could check an environment variable
-    return True
+    value = os.getenv("MOCK_MODE", "true").strip().lower()
+    return value in {"1", "true", "yes", "on"}
 
 
 def generate_mock_jobs() -> List[Dict[str, Any]]:

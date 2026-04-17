@@ -13,7 +13,6 @@ import sys
 
 from app.config import settings
 from app.api.router import api_router
-from app.database import init_db
 from app.utils import is_mock_mode
 from app.services import (
     JobService, ModelService, ClientService,
@@ -44,6 +43,7 @@ async def lifespan(app: FastAPI):
 
     # Initialize database (only if not in mock mode)
     if not is_mock_mode():
+        from app.database import init_db
         init_db()
         logger.info("Database initialized")
 
