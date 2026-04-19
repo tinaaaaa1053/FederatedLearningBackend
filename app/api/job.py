@@ -50,7 +50,9 @@ async def create_job(
 ):
     """创建新任务"""
     job = await service.create_job(job_data)
-    return ApiResponse(data={"jobId": job.id, "status": job.status})
+    job_id = job.get("id") if isinstance(job, dict) else getattr(job, "id", None)
+    job_status = job.get("status") if isinstance(job, dict) else getattr(job, "status", None)
+    return ApiResponse(data={"jobId": job_id, "status": job_status})
 
 
 @router.post("/abort/{job_id}", response_model=ApiResponse[dict])
@@ -62,7 +64,9 @@ async def abort_job(
     job = await service.abort_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    return ApiResponse(data={"jobId": job.id, "status": job.status})
+    aborted_job_id = job.get("id") if isinstance(job, dict) else getattr(job, "id", job_id)
+    aborted_status = job.get("status") if isinstance(job, dict) else getattr(job, "status", "aborted")
+    return ApiResponse(data={"jobId": aborted_job_id, "status": aborted_status})
 
 
 @router.get("/logs/{job_id}")

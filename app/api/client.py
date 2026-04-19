@@ -48,7 +48,9 @@ async def add_client(
 ):
     """添加新客户端"""
     client = await service.create_client(client_data)
-    return ApiResponse(data={"clientId": client.id, "status": client.status})
+    client_id = client.get("id") if isinstance(client, dict) else getattr(client, "id", None)
+    client_status = client.get("status") if isinstance(client, dict) else getattr(client, "status", None)
+    return ApiResponse(data={"clientId": client_id, "status": client_status})
 
 
 @router.post("/delete/{client_id}", response_model=ApiResponse[dict])
@@ -73,7 +75,8 @@ async def update_client(
     client = await service.update_client(client_id, client_data)
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
-    return ApiResponse(data={"clientId": client.id, "status": "updated"})
+    updated_client_id = client.get("id") if isinstance(client, dict) else getattr(client, "id", client_id)
+    return ApiResponse(data={"clientId": updated_client_id, "status": "updated"})
 
 
 @router.post("/reconnect/{client_id}", response_model=ApiResponse[dict])

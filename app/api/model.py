@@ -62,7 +62,10 @@ async def upload_model(
         framework=framework,
         architecture=architecture
     )
-    return ApiResponse(data={"modelId": model.id, "status": "uploaded"})
+    model_id = model.get("id") if isinstance(model, dict) else getattr(model, "id", None)
+    if not model_id:
+        raise HTTPException(status_code=500, detail="Invalid model response from service")
+    return ApiResponse(data={"modelId": model_id, "status": "uploaded"})
 
 
 @router.get("/download/{model_id}")

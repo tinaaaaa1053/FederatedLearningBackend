@@ -171,21 +171,24 @@ class MockJobService:
 
     async def create_job(self, job_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create mock job"""
+        data = job_data.model_dump() if hasattr(job_data, "model_dump") else (
+            job_data.dict() if hasattr(job_data, "dict") else job_data
+        )
         new_job = {
             "id": f"FL-2023-{len(mock_jobs) + 1:03d}",
-            "name": job_data["name"],
-            "description": job_data.get("description", ""),
+            "name": data.get("name"),
+            "description": data.get("description", ""),
             "status": "pending",
-            "job_type": job_data.get("jobType", "custom"),
-            "algorithm": job_data.get("algorithm", "FedAvg算法"),
+            "job_type": data.get("jobType", "custom"),
+            "algorithm": data.get("algorithm", "FedAvg算法"),
             "current_round": 0,
-            "total_rounds": job_data.get("totalRounds", 10),
+            "total_rounds": data.get("totalRounds", 10),
             "accuracy": 0.0,
             "loss": 0.0,
             "created_at": datetime.now(),
             "started_at": None,
             "completed_at": None,
-            "config": job_data.get("config", {}),
+            "config": data.get("config", {}),
             "metrics": {
                 "accuracy": [],
                 "loss": [],
@@ -193,7 +196,7 @@ class MockJobService:
                 "train_loss": [],
                 "test_loss": []
             },
-            "client_ids": job_data.get("clientIds", [])
+            "client_ids": data.get("clientIds", [])
         }
 
         mock_jobs.append(new_job)
@@ -314,13 +317,17 @@ class MockModelService:
         architecture: Optional[str] = None
     ) -> Dict[str, Any]:
         """Upload mock model"""
+        created_at = datetime.now()
+        created_at_str = created_at.strftime("%Y-%m-%d %H:%M:%S")
+
         new_model = {
             "id": f"model-{len(mock_models) + 1}",
             "name": name,
             "job_id": job_id,
             "accuracy": 0.85,
             "loss": 0.28,
-            "createdAt": datetime.now(),
+            "createdAt": created_at_str,
+            "created_at": created_at_str,
             "framework": framework,
             "parameters": "25.6M",
             "size": "98.2 MB",
@@ -450,26 +457,30 @@ class MockClientService:
 
     async def create_client(self, client_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create mock client"""
+        data = client_data.model_dump() if hasattr(client_data, "model_dump") else (
+            client_data.dict() if hasattr(client_data, "dict") else client_data
+        )
+
         new_client = {
             "id": f"client-{len(mock_clients) + 1}",
-            "name": client_data["name"],
-            "device_type": client_data["deviceType"],
-            "ip_address": client_data["ipAddress"],
-            "port": client_data["port"],
-            "fedlbe_port": client_data["fedlbePort"],
-            "gpu": client_data["gpu"],
-            "cpu": client_data["cpu"],
-            "memory": client_data["memory"],
-            "os": client_data["os"],
+            "name": data.get("name"),
+            "device_type": data.get("deviceType", "Edge Server"),
+            "ip_address": data.get("ipAddress"),
+            "port": data.get("port"),
+            "fedlbe_port": data.get("fedlbePort"),
+            "gpu": data.get("gpu"),
+            "cpu": data.get("cpu"),
+            "memory": data.get("memory"),
+            "os": data.get("os"),
             "status": "offline",
             "device_info": {
-                "type": client_data["deviceType"],
-                "ipAddress": client_data["ipAddress"],
-                "port": client_data["port"],
-                "os": client_data["os"],
-                "cpu": client_data["cpu"],
-                "memory": client_data["memory"],
-                "gpu": client_data["gpu"]
+                "type": data.get("deviceType", "Edge Server"),
+                "ipAddress": data.get("ipAddress"),
+                "port": data.get("port"),
+                "os": data.get("os"),
+                "cpu": data.get("cpu"),
+                "memory": data.get("memory"),
+                "gpu": data.get("gpu")
             },
             "resource_usage": {
                 "cpuUsage": 0.0,
@@ -495,7 +506,9 @@ class MockClientService:
         if not client:
             return None
 
-        update_data = client_data
+        update_data = client_data.model_dump() if hasattr(client_data, "model_dump") else (
+            client_data.dict() if hasattr(client_data, "dict") else client_data
+        )
         for field, value in update_data.items():
             if field == "deviceType" and value:
                 client["device_type"] = value
